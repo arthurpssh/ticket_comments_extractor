@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extração de Comentários</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Extração de Comentários</h1>
+        <p class="subtitle">Tickets do Zendesk em uma planilha Excel</p>
+        <a id="adminLink" class="admin-link" href="/admin" hidden>Painel admin →</a>
+      </div>
+      <div id="usage" class="usage loading" aria-live="polite">
+        <div id="usageNumber" class="number">–</div>
+        <div class="label">tickets restantes hoje</div>
+      </div>
+    </header>
+
+    <main>
+      <div id="banner" class="banner" role="alert"></div>
+
+      <label for="ticketInput">IDs dos tickets (separados por vírgula ou linha)</label>
+      <textarea id="ticketInput" disabled placeholder="Exemplo:&#10;11324033&#10;11324038&#10;11324051"></textarea>
+      <div id="counter" class="counter">
+        <span><span id="ticketCount">0</span> / <span id="maxTickets">1000</span> tickets por extração</span>
+        <span>Cada ticket consome 1 da cota diária</span>
+      </div>
+
+      <button id="btnExtract" type="button" disabled>Verificando cota...</button>
+
+      <div id="progressWrap" hidden>
+        <div id="progressTrack"><div id="progressBar"></div></div>
+        <div id="progressText"></div>
+      </div>
+      <div id="status" aria-live="polite"></div>
+
+      <div id="failedBox" class="failed-box" hidden>
+        <div id="failedTitle"></div>
+        <textarea id="failedIds" readonly rows="2"></textarea>
+        <button id="btnCopyFailed" type="button" class="secondary">Copiar IDs que falharam</button>
+      </div>
+
+      <details class="donate">
+        <summary>Doar tickets para um colega</summary>
+        <p class="hint-left">Use quando um colega precisa extrair mais do que a cota diária dele. Os tickets doados saem do seu saldo de hoje e não acumulam para o dia seguinte.</p>
+        <div class="donate-row">
+          <input id="donateTo" type="text" list="donateUsers" placeholder="e-mail do colega" autocomplete="off">
+          <input id="donateAmount" type="number" min="1" step="1" placeholder="Qtd.">
+          <button id="btnDonate" type="button" class="secondary" disabled>Doar</button>
+        </div>
+        <datalist id="donateUsers"></datalist>
+        <div id="donateMsg" class="donate-msg" aria-live="polite"></div>
+      </details>
+
+      <p class="hint">O arquivo .xlsx será baixado automaticamente ao final. A extração continua mesmo se você recarregar a página.</p>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

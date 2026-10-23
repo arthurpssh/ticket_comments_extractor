@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extração de comentários | Admin</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Extração de comentários <span class="sep">|</span> Admin</h1>
+    <div class="topbar-right">
+      <a class="back" href="/">← Ferramenta</a>
+      <span class="chip" id="userChip"></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card config-grid">
+      <div class="config-item">
+        <span class="config-label">Cota diária padrão (tickets por pessoa)</span>
+        <div class="inline" data-config="daily_tickets">
+          <strong class="config-value">…</strong>
+          <button class="icon-btn" data-act="edit" title="Editar" aria-label="Editar cota diária padrão">✎</button>
+          <span class="editor" hidden>
+            <input type="number" min="0" step="1" class="num">
+            <button class="icon-btn ok" data-act="confirm" title="Confirmar" aria-label="Confirmar">✓</button>
+            <button class="icon-btn cancel" data-act="cancel" title="Cancelar" aria-label="Cancelar">✕</button>
+          </span>
+        </div>
+      </div>
+      <div class="config-item">
+        <span class="config-label">Teto global diário (todos os usuários)</span>
+        <div class="inline" data-config="global_daily_tickets">
+          <strong class="config-value">…</strong>
+          <button class="icon-btn" data-act="edit" title="Editar" aria-label="Editar teto global diário">✎</button>
+          <span class="editor" hidden>
+            <input type="number" min="0" step="1" class="num">
+            <button class="icon-btn ok" data-act="confirm" title="Confirmar" aria-label="Confirmar">✓</button>
+            <button class="icon-btn cancel" data-act="cancel" title="Cancelar" aria-label="Cancelar">✕</button>
+          </span>
+        </div>
+        <span class="muted small" id="globalUsed"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="users" role="tab">Usuários</button>
+        <button class="tab" data-tab="analytics" role="tab">Analytics</button>
+        <button class="tab" data-tab="ledger" role="tab">Movimentações</button>
+      </nav>
+
+      <div id="tab-users" class="tabpanel">
+        <div class="add-box">
+          <label for="addInput">Adicionar usuários (e-mails @hotmart.com ou @external.hotmart.com, separados por vírgula ou quebra de linha)</label>
+          <textarea id="addInput" rows="3" placeholder="nome.sobrenome@hotmart.com, outro@external.hotmart.com"></textarea>
+          <div class="add-actions">
+            <button class="btn primary" id="addBtn">Adicionar</button>
+            <span id="addMsg" class="msg"></span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="usersTable">
+            <thead>
+              <tr>
+                <th>E-mail</th>
+                <th class="center">Tickets restantes hoje</th>
+                <th class="center" title="Vazio = usa a cota diária padrão">Cota diária própria</th>
+                <th>Papel</th>
+                <th class="trash-col"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-analytics" class="tabpanel" hidden>
+        <div class="filters">
+          <label>Início <input type="date" id="fStart"></label>
+          <label>Fim <input type="date" id="fEnd"></label>
+          <label>Usuário <select id="fUser"><option value="">Todos</option></select></label>
+          <label>Status
+            <select id="fStatus">
+              <option value="">Todos</option>
+              <option value="processing">Processando</option>
+              <option value="success">Sucesso</option>
+              <option value="partial">Parcial</option>
+              <option value="failed">Falha</option>
+            </select>
+          </label>
+          <button class="btn primary" id="fApply">Aplicar</button>
+        </div>
+        <div class="kpis">
+          <div><span id="kCalls">–</span> extrações</div>
+          <div><span id="kTickets">–</span> tickets</div>
+          <div><span id="kApi">–</span> chamadas à API</div>
+          <div class="muted" id="kGran"></div>
+        </div>
+        <div class="chart-box"><canvas id="chart"></canvas></div>
+        <h3>Ranking de usuários</h3>
+        <div class="table-wrap">
+          <table id="rankTable">
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th class="sortable center" data-sort="calls">Extrações <i></i></th>
+                <th class="sortable center" data-sort="tickets">Tickets <i></i></th>
+                <th class="sortable center" data-sort="api_calls">Chamadas à API <i></i></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-ledger" class="tabpanel" hidden>
+        <div class="filters">
+          <label>Usuário <select id="lUser"><option value="">Todos</option></select></label>
+          <label>Tipo
+            <select id="lType">
+              <option value="">Todos</option>
+              <option value="consume">Consumo</option>
+              <option value="refund">Devolução</option>
+              <option value="transfer_out">Doação enviada</option>
+              <option value="transfer_in">Doação recebida</option>
+              <option value="admin_adjust">Ajuste de admin</option>
+              <option value="reset">Reset diário</option>
+            </select>
+          </label>
+          <button class="btn primary" id="lApply">Aplicar</button>
+          <span class="muted small">Últimas 200 movimentações</span>
+        </div>
+        <div class="table-wrap">
+          <table id="ledgerTable">
+            <thead><tr><th>Data</th><th>Usuário</th><th>Tipo</th><th class="center">Tickets</th><th>Observação</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/vendor/chartjs/chart.umd.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>

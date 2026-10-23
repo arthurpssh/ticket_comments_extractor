@@ -1,0 +1,62 @@
+name: zd-comments-extractor
+
+containerPort: 3001
+cpu: 0.25
+memory: 512Mi
+
+# As extrações ficam em memória (estado e arquivo gerado): manter 1 réplica
+replicaCount: 1
+
+healthCheckPath: /api/health
+periodSeconds: 30
+timeoutSeconds: 5
+successThreshold: 2
+failureThreshold: 5
+
+env:
+  PROFILE: staging
+  PORT: "3001"
+  NEW_RELIC_ENABLED: "false"
+  GOOGLE_CLIENT_EMAIL:
+    secretKeyRef:
+      name: zd-comments-extractor-google-client-email
+      key: GOOGLE_CLIENT_EMAIL
+  GOOGLE_PRIVATE_KEY:
+    secretKeyRef:
+      name: zd-comments-extractor-google-private-key
+      key: GOOGLE_PRIVATE_KEY
+  CONTROL_SPREADSHEET_ID:
+    secretKeyRef:
+      name: zd-comments-extractor-control-spreadsheet-id
+      key: CONTROL_SPREADSHEET_ID
+  ZENDESK_CLIENT_ID:
+    secretKeyRef:
+      name: zd-comments-extractor-zendesk-client-id
+      key: ZENDESK_CLIENT_ID
+  ZENDESK_CLIENT_SECRET:
+    secretKeyRef:
+      name: zd-comments-extractor-zendesk-client-secret
+      key: ZENDESK_CLIENT_SECRET
+  # Fallback legado (usado só se o OAuth acima não estiver configurado). Remover após validar o OAuth.
+  ZENDESK_BASIC_TOKEN:
+    secretKeyRef:
+      name: zd-comments-extractor-zendesk-basic-token
+      key: ZENDESK_BASIC_TOKEN
+  ZENDESK_BASE_URL: "https://suportehotmart.zendesk.com/api/v2"
+  ZENDESK_OAUTH_SCOPE: "read write tickets:read macros:read macros:write"
+  # Máximo de pedidos por minuto ao Zendesk, somando todas as extrações (o limite do plano é 700/min)
+  ZENDESK_MAX_RPM: "150"
+
+lb:
+  type: internal
+  annotations:
+    nginx.ingress.kubernetes.io/auth-url: "https://auth.hotmart.run/verify"
+    nginx.ingress.kubernetes.io/auth-signin: "https://auth.hotmart.run/login?rd=https://$host$request_uri"
+    nginx.ingress.kubernetes.io/auth-response-headers: "X-Auth-Request-Email,X-Auth-Request-User"
+  hosts:
+  - host: zd-comments-extractor.hotmart.run
+    paths: ["/"]
+
+imports:
+- to: module.base-module.aws_ecr_repository.application-default-ecr[0]
+  id: "zd-comments-extractor"
